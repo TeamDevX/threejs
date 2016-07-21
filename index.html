@@ -120,7 +120,7 @@
         for(var j=0;j<shows.length;j++)
         {
             shows[j].camera.aspect = shows[j].element.offsetWidth / shows[j].element.offsetHeight;
-            camera.updateProjectionMatrix();
+            shows[j].camera.updateProjectionMatrix();
             shows[j].renderer.setSize( shows[j].element.offsetWidth, shows[j].element.offsetHeight );
         }
 
