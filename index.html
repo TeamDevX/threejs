@@ -1,0 +1,234 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>three.js webgl - equirectangular panorama</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <style>
+        body {
+            background-color: #000000;
+            margin: 0px;
+            overflow: auto;
+        }
+
+        #info {
+            position: absolute;
+            top: 0px; width: 100%;
+            color: #ffffff;
+            padding: 5px;
+            font-family:Monospace;
+            font-size:13px;
+            font-weight: bold;
+            text-align:center;
+        }
+
+        a {
+            color: #ffffff;
+        }
+        .contain
+        {
+            width:100%;
+            height:500px;
+            display: block;
+            float: left;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+<div id="pano_container_0"  class="pano_container contain" data-panoimage="http://abadev.jynk.net/wp-content/uploads/2016/04/2412_160609_NWC-S3_Stereo-Spherical-Render-Setup_CE_0104.jpg" ></div>
+<div id="pano_container_1"  class="pano_container contain" data-panoimage="http://abadev.jynk.net/wp-content/uploads/2016/04/2412_150918_NWC-S3_Stereo-Spherical-Render-Setup_CE_0154.png" ></div>
+<div id="pano_container_2"  class="pano_container contain" data-panoimage="http://abadev.jynk.net/wp-content/uploads/2016/07/Alison-Brooks-Architects-_-North-West-Cambridge-Development-_-Photo-Aerial-1-1200x797.jpg" ></div>
+<div id="pano_container_3"  class="pano_container contain" data-panoimage="http://abadev.jynk.net/wp-content/uploads/2016/07/Alison-Brooks-Architects-_-North-West-Cambridge-Development-_-Visualisation-Aerial-2-1200x980.jpg" ></div>
+<div id="pano_container_4"  class="pano_container contain" data-panoimage="http://abadev.jynk.net/wp-content/uploads/2016/07/Alison-Brooks-Architects-_-North-West-Cambridge-Development-_-Visualisation-Aerial-2-1200x980.jpg" ></div>
+<div id="pano_container_5"  class="pano_container contain" data-panoimage="http://abadev.jynk.net/wp-content/uploads/2016/04/2412_160609_NWC-S3_Stereo-Spherical-Render-Setup_CE_0104-1200x600.jpg" ></div>
+<div id="pano_container_6"  class="pano_container contain" data-panoimage="http://abadev.jynk.net/wp-content/uploads/2015/10/Alison-Brooks-Architects-_-North-West-Cambridge-Development-_-Visualisation-Aerial-2-1200x980.jpg" ></div>
+
+<script src="three.js"></script>
+
+<script>
+
+
+
+
+
+    init();
+    animate();
+
+    function get_index(str)
+    {
+        var index=str.split('r_')[1];
+       return parseInt(index);
+    }
+
+    function init() {
+
+        var container, mesh;
+
+        container = document.getElementsByClassName( 'contain' );
+        shows=[];
+        for(var i=0;i<container.length;i++)
+        {
+            shows.push({scene:null,renderer:null,camera:null,element:container[i],isUserInteracting:false,onMouseDownMouseX:0,onMouseDownMouseY:0,lon:0,lat:0,onMouseDownLon:0,onMouseDownLat:0,phi:0,theta:0});
+        }
+
+        for(var i=0;i<shows.length;i++)
+        {
+            shows[i].camera=new THREE.PerspectiveCamera( 75, shows[i].element.offsetWidth / shows[i].element.offsetHeight, 1, 1100 );
+            shows[i].camera.target = new THREE.Vector3( 0, 0, 0 );
+            shows[i].scene=new THREE.Scene();
+
+            var geometry = new THREE.SphereGeometry( 500, 60, 40 );
+            geometry.scale( - 1, 1, 1 );
+
+            var material = new THREE.MeshBasicMaterial( {
+                map: new THREE.TextureLoader().load( shows[i].element.getAttribute("data-panoimage"))
+            } );
+
+            mesh = new THREE.Mesh( geometry, material );
+
+            shows[i].scene.add( mesh );
+
+            shows[i].renderer = new THREE.WebGLRenderer();
+            shows[i].renderer.setPixelRatio( window.devicePixelRatio );
+            shows[i].renderer.setSize(shows[i].element.offsetWidth, shows[i].element.offsetHeight);
+            shows[i].element.appendChild( shows[i].renderer.domElement );
+            shows[i].element.addEventListener( 'mousedown', onDocumentMouseDown, false );
+            shows[i].element.addEventListener( 'mousemove', onDocumentMouseMove, false );
+            shows[i].element.addEventListener( 'mouseup', onDocumentMouseUp, false );
+            shows[i].element.addEventListener( 'mousewheel', onDocumentMouseWheel, false );
+            shows[i].element.addEventListener( 'MozMousePixelScroll', onDocumentMouseWheel, false);
+
+
+
+
+
+        }
+
+
+
+
+
+
+        window.addEventListener( 'resize', onWindowResize, false );
+
+    }
+
+    function onWindowResize() {
+
+        for(var j=0;j<shows.length;j++)
+        {
+            shows[j].camera.aspect = shows[j].element.offsetWidth / shows[j].element.offsetHeight;
+            camera.updateProjectionMatrix();
+            shows[j].renderer.setSize( shows[j].element.offsetWidth, shows[j].element.offsetHeight );
+        }
+
+
+    }
+
+    function onDocumentMouseDown( event ) {
+
+        event.preventDefault();
+       // get_index(this.getAttribute("id"));
+        var index=get_index(this.getAttribute("id"));
+
+        shows[index].isUserInteracting = true;
+
+        shows[index].onPointerDownPointerX = event.clientX;
+        shows[index].onPointerDownPointerY = event.clientY;
+
+        shows[index].onPointerDownLon = shows[index].lon;
+        shows[index].onPointerDownLat = shows[index].lat;
+
+    }
+
+    function onDocumentMouseMove( event ) {
+        var index=get_index(this.getAttribute("id"));
+        if ( shows[index].isUserInteracting === true ) {
+
+            shows[index].lon = ( shows[index].onPointerDownPointerX - event.clientX ) * 0.1 + shows[index].onPointerDownLon;
+            shows[index].lat = ( event.clientY - shows[index].onPointerDownPointerY ) * 0.1 + shows[index].onPointerDownLat;
+
+        }
+
+    }
+
+    function onDocumentMouseUp( event ) {
+        var index=get_index(this.getAttribute("id"));
+        shows[index].isUserInteracting = false;
+
+    }
+
+    function onDocumentMouseWheel( event ) {
+
+        // WebKit
+        var index=get_index(this.getAttribute("id"));
+
+
+            if ( event.wheelDeltaY ) {
+
+                shows[index].camera.fov -= event.wheelDeltaY * 0.05;
+
+                // Opera / Explorer 9
+
+            } else if ( event.wheelDelta ) {
+
+                shows[index].camera.fov -= event.wheelDelta * 0.05;
+
+                // Firefox
+
+            } else if ( event.detail ) {
+
+                shows[index].camera.fov += event.detail * 1.0;
+
+            }
+
+            shows[index].camera.updateProjectionMatrix();
+
+
+
+    }
+
+    function animate() {
+
+        requestAnimationFrame( animate );
+        update();
+
+    }
+
+    function update() {
+
+
+
+
+        for(var j=0;j<shows.length;j++)
+        {
+            if ( shows[j].isUserInteracting === false ) {
+
+                shows[j].lon += 0.1;
+
+            }
+
+            shows[j].lat = Math.max( - 85, Math.min( 85, shows[j].lat ) );
+            shows[j].phi = THREE.Math.degToRad( 90 - shows[j].lat );
+            shows[j].theta = THREE.Math.degToRad( shows[j].lon );
+            shows[j].camera.target.x = 500 * Math.sin( shows[j].phi ) * Math.cos( shows[j].theta );
+            shows[j].camera.target.y = 500 * Math.cos( shows[j].phi );
+            shows[j].camera.target.z = 500 * Math.sin( shows[j].phi ) * Math.sin( shows[j].theta );
+
+            shows[j].camera.lookAt( shows[j].camera.target );
+
+            /*
+             // distortion
+             camera.position.copy( camera.target ).negate();
+             */
+
+            shows[j].renderer.render( shows[j].scene, shows[j].camera );
+        }
+
+    }
+
+</script>
+</body>
+</html>
