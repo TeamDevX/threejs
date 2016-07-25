@@ -29,10 +29,11 @@
         .contain
         {
             width:100%;
-            height:500px;
+            height: 500px;
             display: block;
             float: left;
             margin-top: 20px;
+            max-height: 500px;
         }
     </style>
 </head>
@@ -48,10 +49,6 @@
 <script src="three.js"></script>
 
 <script>
-
-
-
-
 
     init();
     animate();
@@ -75,6 +72,7 @@
 
         for(var i=0;i<shows.length;i++)
         {
+            shows[i].element.setAttribute("style","height:"+shows[i].element.offsetWidth*0.6+"px");
             shows[i].camera=new THREE.PerspectiveCamera( 75, shows[i].element.offsetWidth / shows[i].element.offsetHeight, 1, 1100 );
             shows[i].camera.target = new THREE.Vector3( 0, 0, 0 );
             shows[i].scene=new THREE.Scene();
@@ -100,31 +98,22 @@
             shows[i].element.addEventListener( 'mousewheel', onDocumentMouseWheel, false );
             shows[i].element.addEventListener( 'MozMousePixelScroll', onDocumentMouseWheel, false);
 
-
-
-
-
         }
-
-
-
-
-
-
         window.addEventListener( 'resize', onWindowResize, false );
 
     }
 
     function onWindowResize() {
-
         for(var j=0;j<shows.length;j++)
         {
+            shows[j].element.setAttribute("style","height:"+shows[j].element.offsetWidth*0.6+"px");
+           //shows[j].element.style.height="'"+(shows[j].element.offsetWidth/2)+"px'";
+          //  console.log(shows[j].element.offsetWidth+"    "+shows[j].element.offsetHeight+"  r "+shows[j].element.style.height);
             shows[j].camera.aspect = shows[j].element.offsetWidth / shows[j].element.offsetHeight;
             shows[j].camera.updateProjectionMatrix();
+            //console.log(shows[j].element.offsetWidth+"    "+shows[j].element.offsetHeight);
             shows[j].renderer.setSize( shows[j].element.offsetWidth, shows[j].element.offsetHeight );
         }
-
-
     }
 
     function onDocumentMouseDown( event ) {
@@ -149,7 +138,6 @@
 
             shows[index].lon = ( shows[index].onPointerDownPointerX - event.clientX ) * 0.1 + shows[index].onPointerDownLon;
             shows[index].lat = ( event.clientY - shows[index].onPointerDownPointerY ) * 0.1 + shows[index].onPointerDownLat;
-
         }
 
     }
@@ -161,11 +149,8 @@
     }
 
     function onDocumentMouseWheel( event ) {
-
         // WebKit
         var index=get_index(this.getAttribute("id"));
-
-
             if ( event.wheelDeltaY ) {
 
                 shows[index].camera.fov -= event.wheelDeltaY * 0.05;
@@ -185,9 +170,6 @@
             }
 
             shows[index].camera.updateProjectionMatrix();
-
-
-
     }
 
     function animate() {
@@ -198,9 +180,6 @@
     }
 
     function update() {
-
-
-
 
         for(var j=0;j<shows.length;j++)
         {
@@ -218,12 +197,6 @@
             shows[j].camera.target.z = 500 * Math.sin( shows[j].phi ) * Math.sin( shows[j].theta );
 
             shows[j].camera.lookAt( shows[j].camera.target );
-
-            /*
-             // distortion
-             camera.position.copy( camera.target ).negate();
-             */
-
             shows[j].renderer.render( shows[j].scene, shows[j].camera );
         }
 
